@@ -1,143 +1,246 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Tuesday Posting Window</title>
 
 <style>
+:root {
+  --bg: #0f1117;
+  --card: #181b24;
+  --text: #f4f6fb;
+  --muted: #a8afc4;
+  --open: #31c48d;
+  --closed: #f05252;
+  --accent: #8b5cf6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    max-width: 700px;
-    margin: 40px auto;
-    text-align: center;
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #252a3a, var(--bg));
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 720px;
+  background: rgba(24, 27, 36, 0.92);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+  text-align: center;
+}
+
+.badge {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.16);
+  color: #c4b5fd;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 18px 0 10px;
+  font-size: clamp(2rem, 6vw, 4rem);
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 1.1rem;
+  margin-bottom: 28px;
 }
 
 .status {
-    font-size: 2rem;
-    font-weight: bold;
-    margin: 20px;
+  margin: 24px auto;
+  padding: 18px;
+  border-radius: 20px;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-weight: 900;
 }
 
-.open {
-    color: green;
+.status.open {
+  color: var(--open);
+  background: rgba(49, 196, 141, 0.12);
 }
 
-.closed {
-    color: red;
+.status.closed {
+  color: var(--closed);
+  background: rgba(240, 82, 82, 0.12);
 }
 
 .countdown {
-    font-size: 1.5rem;
-    margin-top: 20px;
+  font-size: clamp(1.6rem, 5vw, 3.2rem);
+  font-weight: 800;
+  margin: 20px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.timebox {
+  background: rgba(255,255,255,0.05);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.value {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.note {
+  margin-top: 26px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 620px) {
+  .card {
+    padding: 24px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 </head>
 
 <body>
+  <main class="card">
+    <div class="badge">Weekly Event</div>
 
-<h1>Tuesday Posting Window</h1>
+    <h1>Tuesday Posting Window</h1>
 
-<p><strong>Allowed:</strong> Tuesday 7:00 AM PT → Wednesday 7:00 AM PT</p>
+    <p class="subtitle">
+      Open every Tuesday at 7:00 AM PT until Wednesday at 7:00 AM PT.
+    </p>
 
-<p id="ptTime"></p>
-<p id="localTime"></p>
+    <div id="status" class="status"></div>
 
-<div id="status" class="status"></div>
+    <div id="countdown" class="countdown"></div>
 
-<div id="countdown" class="countdown"></div>
+    <div class="grid">
+      <div class="timebox">
+        <div class="label">Pacific Time</div>
+        <div id="ptTime" class="value"></div>
+      </div>
+
+      <div class="timebox">
+        <div class="label">Your Local Time</div>
+        <div id="localTime" class="value"></div>
+      </div>
+    </div>
+
+    <p class="note">
+      Posts using the Tuesday flair are only allowed during this window.
+    </p>
+  </main>
 
 <script>
+function getPacificDateParts(date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  }).format(date);
+}
+
+function getPacificNowAsDate() {
+  const now = new Date();
+  return new Date(now.toLocaleString("en-US", {
+    timeZone: "America/Los_Angeles"
+  }));
+}
 
 function update() {
+  const now = new Date();
+  const ptNow = getPacificNowAsDate();
 
-    const now = new Date();
+  document.getElementById("ptTime").textContent = getPacificDateParts(now);
+  document.getElementById("localTime").textContent = now.toLocaleString();
 
-    const ptNow = new Date(
-        now.toLocaleString("en-US", {
-            timeZone: "America/Los_Angeles"
-        })
-    );
+  const day = ptNow.getDay(); // Sunday = 0, Tuesday = 2
+  const hour = ptNow.getHours();
 
-    document.getElementById("ptTime").textContent =
-        "Current PT Time: " + ptNow.toLocaleString();
+  const isOpen =
+    (day === 2 && hour >= 7) ||
+    (day === 3 && hour < 7);
 
-    document.getElementById("localTime").textContent =
-        "Your Local Time: " + now.toLocaleString();
+  let target = new Date(ptNow);
 
-    const day = ptNow.getDay(); // Sun=0
-    const hour = ptNow.getHours();
+  if (isOpen) {
+    document.getElementById("status").textContent = "🟢 Posting Open";
+    document.getElementById("status").className = "status open";
 
-    let open = false;
-
-    if (day === 2 && hour >= 7) {
-        open = true;
+    if (day === 2) {
+      target.setDate(target.getDate() + 1);
     }
 
-    if (day === 3 && hour < 7) {
-        open = true;
+    target.setHours(7, 0, 0, 0);
+  } else {
+    document.getElementById("status").textContent = "🔴 Posting Closed";
+    document.getElementById("status").className = "status closed";
+
+    let daysUntilTuesday = (2 - day + 7) % 7;
+
+    if (daysUntilTuesday === 0 && hour >= 7) {
+      daysUntilTuesday = 7;
     }
 
-    let target = new Date(ptNow);
+    target.setDate(target.getDate() + daysUntilTuesday);
+    target.setHours(7, 0, 0, 0);
+  }
 
-    if (open) {
+  const diff = target - ptNow;
 
-        document.getElementById("status").textContent =
-            "🟢 POSTING OPEN";
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
 
-        document.getElementById("status").className =
-            "status open";
-
-        if (day === 2) {
-            target.setDate(target.getDate() + 1);
-        }
-
-        target.setHours(7,0,0,0);
-
-    } else {
-
-        document.getElementById("status").textContent =
-            "🔴 POSTING CLOSED";
-
-        document.getElementById("status").className =
-            "status closed";
-
-        let daysUntilTuesday =
-            (2 - day + 7) % 7;
-
-        if (daysUntilTuesday === 0 && hour >= 7)
-            daysUntilTuesday = 7;
-
-        target.setDate(
-            target.getDate() + daysUntilTuesday
-        );
-
-        target.setHours(7,0,0,0);
-    }
-
-    const diff = target - ptNow;
-
-    const days =
-        Math.floor(diff / 86400000);
-
-    const hours =
-        Math.floor(diff % 86400000 / 3600000);
-
-    const minutes =
-        Math.floor(diff % 3600000 / 60000);
-
-    const seconds =
-        Math.floor(diff % 60000 / 1000);
-
-    document.getElementById("countdown").textContent =
-        open
-        ? `Window closes in ${days}d ${hours}h ${minutes}m ${seconds}s`
-        : `Window opens in ${days}d ${hours}h ${minutes}m ${seconds}s`;
+  document.getElementById("countdown").textContent =
+    isOpen
+      ? `Closes in ${days}d ${hours}h ${minutes}m ${seconds}s`
+      : `Opens in ${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
 update();
 setInterval(update, 1000);
-
 </script>
-
 </body>
 </html>
