@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tuesday Posting Window</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    max-width: 700px;
+    margin: 40px auto;
+    text-align: center;
+}
+
+.status {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 20px;
+}
+
+.open {
+    color: green;
+}
+
+.closed {
+    color: red;
+}
+
+.countdown {
+    font-size: 1.5rem;
+    margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Tuesday Posting Window</h1>
+
+<p><strong>Allowed:</strong> Tuesday 7:00 AM PT → Wednesday 7:00 AM PT</p>
+
+<p id="ptTime"></p>
+<p id="localTime"></p>
+
+<div id="status" class="status"></div>
+
+<div id="countdown" class="countdown"></div>
+
+<script>
+
+function update() {
+
+    const now = new Date();
+
+    const ptNow = new Date(
+        now.toLocaleString("en-US", {
+            timeZone: "America/Los_Angeles"
+        })
+    );
+
+    document.getElementById("ptTime").textContent =
+        "Current PT Time: " + ptNow.toLocaleString();
+
+    document.getElementById("localTime").textContent =
+        "Your Local Time: " + now.toLocaleString();
+
+    const day = ptNow.getDay(); // Sun=0
+    const hour = ptNow.getHours();
+
+    let open = false;
+
+    if (day === 2 && hour >= 7) {
+        open = true;
+    }
+
+    if (day === 3 && hour < 7) {
+        open = true;
+    }
+
+    let target = new Date(ptNow);
+
+    if (open) {
+
+        document.getElementById("status").textContent =
+            "🟢 POSTING OPEN";
+
+        document.getElementById("status").className =
+            "status open";
+
+        if (day === 2) {
+            target.setDate(target.getDate() + 1);
+        }
+
+        target.setHours(7,0,0,0);
+
+    } else {
+
+        document.getElementById("status").textContent =
+            "🔴 POSTING CLOSED";
+
+        document.getElementById("status").className =
+            "status closed";
+
+        let daysUntilTuesday =
+            (2 - day + 7) % 7;
+
+        if (daysUntilTuesday === 0 && hour >= 7)
+            daysUntilTuesday = 7;
+
+        target.setDate(
+            target.getDate() + daysUntilTuesday
+        );
+
+        target.setHours(7,0,0,0);
+    }
+
+    const diff = target - ptNow;
+
+    const days =
+        Math.floor(diff / 86400000);
+
+    const hours =
+        Math.floor(diff % 86400000 / 3600000);
+
+    const minutes =
+        Math.floor(diff % 3600000 / 60000);
+
+    const seconds =
+        Math.floor(diff % 60000 / 1000);
+
+    document.getElementById("countdown").textContent =
+        open
+        ? `Window closes in ${days}d ${hours}h ${minutes}m ${seconds}s`
+        : `Window opens in ${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
+update();
+setInterval(update, 1000);
+
+</script>
+
+</body>
+</html>
